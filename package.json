@@ -1,9 +1,9 @@
 {
   "name": "qixichat",
-  "description": "Chat with other users in real-time using Durable Objects and PartyKit.",
+  "description": "基于 Durable Objects 和 PartyKit 构建的实时聊天应用",
   "private": true,
   "cloudflare": {
-    "label": "Durable Chat App",
+    "label": "七夕聊天应用",
     "products": [
       "Workers",
       "Durable Objects"
