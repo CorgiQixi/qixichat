@@ -36,9 +36,8 @@ function App() {
   const { room } = useParams();
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // 显示通知
   const showNotification = useCallback((message: string) => {
@@ -125,10 +124,11 @@ function App() {
 
     const userNameInput = document.getElementById('userName') as HTMLInputElement;
     const avatarUrlInput = document.getElementById('avatarUrl') as HTMLInputElement;
-    const avatarOptions = document.querySelectorAll('.avatar-option');
     const copyRoomIdBtn = document.getElementById('copyRoomId');
     const shareRoomBtn = document.getElementById('shareRoom');
     const navBtns = document.querySelectorAll('.nav-btn');
+    const messageForm = document.getElementById('messageForm') as HTMLFormElement;
+    const messageInput = document.getElementById('messageInput') as HTMLTextAreaElement;
 
     const handleNameChange = () => {
       setUserInfo(prev => prev ? {
@@ -151,22 +151,13 @@ function App() {
         } catch {
           // 无效URL，忽略
         }
-      }
-    };
-
-    const handleAvatarOptionClick = (event: Event) => {
-      const target = event.currentTarget as HTMLElement;
-      const emoji = target.getAttribute('data-emoji');
-      if (emoji) {
+      } else {
+        // 清空URL时恢复默认头像
         setUserInfo(prev => prev ? {
           ...prev,
-          userAvatar: emoji,
+          userAvatar: '👤',
           avatarType: 'emoji'
         } : null);
-        
-        // 更新选项激活状态
-        avatarOptions.forEach(option => option.classList.remove('active'));
-        target.classList.add('active');
       }
     };
 
@@ -207,18 +198,52 @@ function App() {
       }
     };
 
+    const handleMessageSubmit = (e: Event) => {
+      e.preventDefault();
+      if (!messageInput.value.trim() || !userInfo) return;
+
+      const chatMessage: ChatMessage & { timestamp: number } = {
+        id: nanoid(8),
+        content: messageInput.value.trim(),
+        user: userInfo.userName,
+        role: "user",
+        timestamp: Date.now()
+      };
+
+      setMessages((messages) => [...messages, chatMessage]);
+      socket.send(
+        JSON.stringify({
+          type: "add",
+          ...chatMessage,
+        } satisfies Message),
+      );
+
+      messageInput.value = "";
+      adjustTextareaHeight(messageInput);
+    };
+
+    const handleMessageInput = (e: Event) => {
+      const target = e.target as HTMLTextAreaElement;
+      adjustTextareaHeight(target);
+    };
+
+    const handleMessageKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleMessageSubmit(e);
+      }
+    };
+
     // 添加事件监听器
     if (userNameInput) userNameInput.addEventListener('input', handleNameChange);
     if (avatarUrlInput) avatarUrlInput.addEventListener('input', handleAvatarUrlChange);
     if (copyRoomIdBtn) copyRoomIdBtn.addEventListener('click', handleCopyRoomId);
     if (shareRoomBtn) shareRoomBtn.addEventListener('click', handleShareRoom);
-    
-    avatarOptions.forEach(option => {
-      option.addEventListener('click', handleAvatarOptionClick);
-      if (option.getAttribute('data-emoji') === userInfo.userAvatar) {
-        option.classList.add('active');
-      }
-    });
+    if (messageForm) messageForm.addEventListener('submit', handleMessageSubmit);
+    if (messageInput) {
+      messageInput.addEventListener('input', handleMessageInput);
+      messageInput.addEventListener('keypress', handleMessageKeyPress);
+    }
 
     navBtns.forEach(btn => {
       btn.addEventListener('click', handleNavClick);
@@ -230,10 +255,11 @@ function App() {
       if (avatarUrlInput) avatarUrlInput.removeEventListener('input', handleAvatarUrlChange);
       if (copyRoomIdBtn) copyRoomIdBtn.removeEventListener('click', handleCopyRoomId);
       if (shareRoomBtn) shareRoomBtn.removeEventListener('click', handleShareRoom);
-      
-      avatarOptions.forEach(option => {
-        option.removeEventListener('click', handleAvatarOptionClick);
-      });
+      if (messageForm) messageForm.removeEventListener('submit', handleMessageSubmit);
+      if (messageInput) {
+        messageInput.removeEventListener('input', handleMessageInput);
+        messageInput.removeEventListener('keypress', handleMessageKeyPress);
+      }
 
       navBtns.forEach(btn => {
         btn.removeEventListener('click', handleNavClick);
@@ -242,17 +268,16 @@ function App() {
   }, [userInfo, room, showNotification]);
 
   // 自动调整文本域高度
-  const adjustTextareaHeight = useCallback(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-    }
+  const adjustTextareaHeight = useCallback((textarea: HTMLTextAreaElement) => {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
   }, []);
 
   // 自动滚动到底部
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const socket = usePartySocket({
@@ -310,44 +335,6 @@ function App() {
     },
   });
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputMessage.trim() || !userInfo) return;
-
-    const chatMessage: ChatMessage & { timestamp: number } = {
-      id: nanoid(8),
-      content: inputMessage.trim(),
-      user: userInfo.userName,
-      role: "user",
-      timestamp: Date.now()
-    };
-
-    setMessages((messages) => [...messages, chatMessage]);
-    socket.send(
-      JSON.stringify({
-        type: "add",
-        ...chatMessage,
-      } satisfies Message),
-    );
-
-    setInputMessage("");
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInputMessage(e.target.value);
-    adjustTextareaHeight();
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage(e);
-    }
-  };
-
   const formatTime = (timestamp: number) => {
     return new Date(timestamp).toLocaleTimeString('zh-CN', {
       hour: '2-digit',
@@ -358,7 +345,7 @@ function App() {
   if (!userInfo) {
     return (
       <div className="chat-container">
-        <div className="messages-container" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+        <div className="messages-container" ref={messagesContainerRef} style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
           <div className="loading"></div>
         </div>
       </div>
@@ -367,9 +354,9 @@ function App() {
 
   return (
     <div className="chat-container">
-      <div className="messages-container">
+      <div className="messages-container" ref={messagesContainerRef}>
         {messages.length === 0 ? (
-          <div style={{textAlign: 'center', color: '#999', padding: '40px 20px'}}>
+          <div className="empty-state">
             <h3>欢迎来到七夕聊天室！</h3>
             <p>开始发送第一条消息吧～</p>
           </div>
@@ -407,26 +394,6 @@ function App() {
         )}
         <div ref={messagesEndRef} />
       </div>
-
-      <form onSubmit={handleSendMessage} className="message-input-container">
-        <textarea
-          ref={textareaRef}
-          value={inputMessage}
-          onChange={handleInputChange}
-          onKeyPress={handleKeyPress}
-          placeholder="输入消息... (按Enter发送，Shift+Enter换行)"
-          className="message-input"
-          autoComplete="off"
-          rows={1}
-        />
-        <button
-          type="submit"
-          disabled={!inputMessage.trim()}
-          className="send-button"
-        >
-          发送
-        </button>
-      </form>
     </div>
   );
 }
