@@ -16,31 +16,32 @@
       <div class="user-panel">
         <div class="user-info">
           <h4 class="app-title">七夕聊天</h4>
+          
+          <!-- 头像设置区域 -->
           <div class="avatar-section">
             <div class="avatar-preview" id="avatarPreview">
               <img id="avatarImage" src="" alt="头像" style="display: none;">
               <span id="avatarEmoji">👤</span>
             </div>
-            <div class="avatar-input-group">
-              <input type="text" id="avatarUrl" placeholder="输入图片URL" class="u-full-width" />
-              <div class="avatar-options">
-                <span class="avatar-option" data-emoji="👤">👤</span>
-                <span class="avatar-option" data-emoji="😊">😊</span>
-                <span class="avatar-option" data-emoji="😎">😎</span>
-                <span class="avatar-option" data-emoji="🤩">🤩</span>
-                <span class="avatar-option" data-emoji="🥰">🥰</span>
-                <span class="avatar-option" data-emoji="😇">😇</span>
-              </div>
+            <div class="input-group">
+              <label for="avatarUrl">头像图片 URL</label>
+              <input type="text" id="avatarUrl" placeholder="输入图片URL地址" class="u-full-width" />
             </div>
           </div>
+
+          <!-- 昵称设置 -->
           <div class="input-group">
             <label for="userName">昵称</label>
             <input type="text" id="userName" placeholder="请输入昵称" class="u-full-width" />
           </div>
+
+          <!-- 用户ID显示 -->
           <div class="info-group">
             <label>用户 ID</label>
-            <div class="info-value copyable" id="userId">-</div>
+            <div class="info-value" id="userId">-</div>
           </div>
+
+          <!-- 聊天室ID显示 -->
           <div class="info-group">
             <label>聊天室 ID</label>
             <div class="info-value-with-copy">
@@ -53,6 +54,8 @@
               </button>
             </div>
           </div>
+
+          <!-- 分享按钮 -->
           <div class="share-section">
             <button class="share-btn" id="shareRoom">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -69,7 +72,27 @@
 
       <!-- 右侧聊天区域 -->
       <div class="chat-panel">
-        <div id="root"></div>
+        <div class="chat-container">
+          <!-- 消息显示区域 -->
+          <div class="messages-container" id="messagesContainer">
+            <!-- 消息将通过React动态插入 -->
+          </div>
+          
+          <!-- 固定的消息输入区域 -->
+          <div class="message-input-fixed">
+            <form class="message-input-container" id="messageForm">
+              <textarea 
+                id="messageInput" 
+                placeholder="输入消息... (按Enter发送，Shift+Enter换行)" 
+                class="message-input"
+                rows="1"
+              ></textarea>
+              <button type="submit" class="send-button">
+                发送
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
 
       <!-- 移动端底部导航 -->
