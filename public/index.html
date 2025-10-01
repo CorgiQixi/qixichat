@@ -27,6 +27,14 @@
               <label for="avatarUrl">头像图片 URL</label>
               <input type="text" id="avatarUrl" placeholder="输入图片URL地址" class="u-full-width" />
             </div>
+            <div class="avatar-options">
+              <span class="avatar-option" data-emoji="👤">👤</span>
+              <span class="avatar-option" data-emoji="😊">😊</span>
+              <span class="avatar-option" data-emoji="😎">😎</span>
+              <span class="avatar-option" data-emoji="🤩">🤩</span>
+              <span class="avatar-option" data-emoji="🥰">🥰</span>
+              <span class="avatar-option" data-emoji="😇">😇</span>
+            </div>
           </div>
 
           <!-- 昵称设置 -->
@@ -113,3 +121,46 @@
     </div>
   </body>
 </html>
+
+================================================
+FILE: public/styles.css
+================================================
+/* 在现有的CSS中添加以下样式 */
+
+/* 连接状态指示器 */
+.connection-status {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+  z-index: 1000;
+}
+
+.connection-status.connected {
+  background: #4CAF50;
+  color: white;
+}
+
+.connection-status.disconnected {
+  background: #f44336;
+  color: white;
+}
+
+.connection-status.connecting {
+  background: #ff9800;
+  color: white;
+}
+
+/* 确保消息输入框始终可见 */
+.message-input-fixed {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e8e8e8;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  z-index: 100;
+}
