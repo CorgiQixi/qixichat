@@ -9,6 +9,7 @@ body, html {
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background: #f5f5f5;
+  overflow: hidden;
 }
 
 .app-container {
@@ -22,40 +23,41 @@ body, html {
 .user-panel {
   width: 320px;
   background: linear-gradient(135deg, #b3cc9c 0%, #9bb583 100%);
-  padding: 30px 25px;
+  padding: 25px 20px;
   display: flex;
   flex-direction: column;
   border-right: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
   z-index: 10;
+  overflow-y: auto;
 }
 
 .app-title {
   color: #2d5016;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
   font-weight: 700;
-  font-size: 24px;
+  font-size: 22px;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
 }
 
 .avatar-section {
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   text-align: center;
 }
 
 .avatar-preview {
-  width: 100px;
-  height: 100px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   background: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
-  margin: 0 auto 20px;
-  border: 4px solid rgba(255, 255, 255, 0.8);
+  font-size: 36px;
+  margin: 0 auto 15px;
+  border: 3px solid rgba(255, 255, 255, 0.8);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   position: relative;
@@ -68,68 +70,13 @@ body, html {
   border-radius: 50%;
 }
 
-.avatar-input-group {
-  margin-top: 15px;
-}
-
-.avatar-input-group input {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 25px;
-  background: rgba(255, 255, 255, 0.9);
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.avatar-input-group input:focus {
-  outline: none;
-  border-color: #7aa35c;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(122, 163, 92, 0.2);
-}
-
-.avatar-options {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 15px;
-  flex-wrap: wrap;
-}
-
-.avatar-option {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 2px solid transparent;
-}
-
-.avatar-option:hover {
-  background: white;
-  transform: scale(1.1);
-  border-color: #7aa35c;
-}
-
-.avatar-option.active {
-  background: #7aa35c;
-  color: white;
-  border-color: #7aa35c;
-}
-
 .input-group, .info-group {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .input-group label, .info-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: #2d5016;
   font-weight: 600;
   font-size: 14px;
@@ -137,9 +84,9 @@ body, html {
 
 .input-group input {
   width: 100%;
-  padding: 12px 15px;
+  padding: 10px 12px;
   border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 10px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.9);
   font-size: 14px;
   transition: all 0.3s ease;
@@ -153,28 +100,32 @@ body, html {
 }
 
 .info-group .info-value {
-  padding: 12px 15px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.9);
   border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 10px;
+  border-radius: 8px;
   color: #666;
   font-size: 14px;
   word-break: break-all;
   font-family: 'Courier New', monospace;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
 }
 
 .info-value-with-copy {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 15px;
+  gap: 8px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.9);
   border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 10px;
+  border-radius: 8px;
   color: #666;
   font-size: 14px;
   word-break: break-all;
   font-family: 'Courier New', monospace;
+  min-height: 42px;
 }
 
 .info-value-with-copy span {
@@ -187,12 +138,13 @@ body, html {
   border: none;
   color: #7aa35c;
   cursor: pointer;
-  padding: 5px;
-  border-radius: 5px;
+  padding: 4px;
+  border-radius: 4px;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .copy-btn:hover {
@@ -201,15 +153,15 @@ body, html {
 }
 
 .share-section {
-  margin-top: 25px;
+  margin-top: 20px;
 }
 
 .share-btn {
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   background: rgba(255, 255, 255, 0.9);
   border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 10px;
+  border-radius: 8px;
   color: #7aa35c;
   font-weight: 600;
   cursor: pointer;
@@ -217,15 +169,15 @@ body, html {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 14px;
 }
 
 .share-btn:hover {
   background: white;
   border-color: #7aa35c;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* 右侧聊天面板 */
@@ -235,42 +187,110 @@ body, html {
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow: hidden;
 }
 
-#root {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-/* 聊天消息区域 */
 .chat-container {
   flex: 1;
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: hidden;
 }
 
+/* 消息显示区域 */
 .messages-container {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
   background: #f8f9fa;
+  display: flex;
+  flex-direction: column;
 }
 
+/* 固定的消息输入区域 */
+.message-input-fixed {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e8e8e8;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  z-index: 100;
+}
+
+.message-input-container {
+  display: flex;
+  gap: 12px;
+  padding: 15px 20px;
+  background: white;
+}
+
+.message-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #e8e8e8;
+  border-radius: 20px;
+  outline: none;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  resize: none;
+  min-height: 44px;
+  max-height: 100px;
+  font-family: inherit;
+  line-height: 1.4;
+}
+
+.message-input:focus {
+  border-color: #b3cc9c;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(179, 204, 156, 0.2);
+}
+
+.send-button {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #b3cc9c, #9bb583);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  min-width: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(155, 181, 131, 0.3);
+  flex-shrink: 0;
+}
+
+.send-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(155, 181, 131, 0.4);
+}
+
+.send-button:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* 消息样式 */
 .message {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 20px;
-  max-width: 85%;
+  margin-bottom: 16px;
+  max-width: 80%;
   animation: fadeInUp 0.3s ease;
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -289,17 +309,17 @@ body, html {
 }
 
 .message-avatar {
-  width: 45px;
-  height: 45px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 16px;
   flex-shrink: 0;
-  margin: 0 12px;
-  border: 3px solid white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 0 10px;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   background: #f0f0f0;
 }
@@ -308,6 +328,7 @@ body, html {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50%;
 }
 
 .message.own .message-avatar {
@@ -319,31 +340,31 @@ body, html {
 }
 
 .message-content {
-  padding: 15px 20px;
-  border-radius: 20px;
+  padding: 12px 16px;
+  border-radius: 18px;
   position: relative;
   word-wrap: break-word;
   max-width: 100%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .message.own .message-content {
   background: linear-gradient(135deg, #a4f678, #8de55c);
-  border-bottom-right-radius: 5px;
+  border-bottom-right-radius: 4px;
   color: #2d5016;
 }
 
 .message.other .message-content {
   background: white;
   border: 1px solid #e8e8e8;
-  border-bottom-left-radius: 5px;
+  border-bottom-left-radius: 4px;
   color: #333;
 }
 
 .message-user {
   font-weight: 600;
   font-size: 12px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   color: #666;
 }
 
@@ -353,78 +374,19 @@ body, html {
 
 .message-text {
   margin: 0;
-  line-height: 1.5;
-  font-size: 15px;
+  line-height: 1.4;
+  font-size: 14px;
 }
 
 .message-time {
-  font-size: 11px;
+  font-size: 10px;
   color: #999;
-  margin-top: 5px;
+  margin-top: 4px;
   text-align: right;
 }
 
 .message.other .message-time {
   text-align: left;
-}
-
-/* 消息输入区域 */
-.message-input-container {
-  display: flex;
-  gap: 12px;
-  padding: 20px;
-  background: white;
-  border-top: 1px solid #e8e8e8;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.message-input {
-  flex: 1;
-  padding: 15px 20px;
-  border: 2px solid #e8e8e8;
-  border-radius: 25px;
-  outline: none;
-  font-size: 15px;
-  transition: all 0.3s ease;
-  background: #f8f9fa;
-  resize: none;
-  min-height: 50px;
-  max-height: 120px;
-  font-family: inherit;
-}
-
-.message-input:focus {
-  border-color: #b3cc9c;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(179, 204, 156, 0.2);
-}
-
-.send-button {
-  padding: 15px 25px;
-  background: linear-gradient(135deg, #b3cc9c, #9bb583);
-  color: white;
-  border: none;
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  min-width: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 10px rgba(155, 181, 131, 0.3);
-}
-
-.send-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(155, 181, 131, 0.4);
-}
-
-.send-button:disabled {
-  background: #cccccc;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
 /* 移动端底部导航 */
@@ -436,25 +398,25 @@ body, html {
   right: 0;
   background: white;
   border-top: 1px solid #e8e8e8;
-  padding: 10px;
+  padding: 8px;
   z-index: 1000;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .nav-btn {
   flex: 1;
-  padding: 12px;
+  padding: 10px;
   background: none;
   border: none;
   color: #999;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  border-radius: 10px;
+  gap: 3px;
+  border-radius: 8px;
 }
 
 .nav-btn.active {
@@ -464,7 +426,7 @@ body, html {
 
 /* 滚动条样式 */
 .messages-container::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 .messages-container::-webkit-scrollbar-track {
@@ -496,6 +458,7 @@ body, html {
     width: 100%;
     transform: translateX(-100%);
     z-index: 100;
+    padding: 20px 15px;
   }
 
   .user-panel.active {
@@ -511,53 +474,7 @@ body, html {
   }
 
   .message {
-    max-width: 90%;
-  }
-
-  .message-content {
-    padding: 12px 16px;
-  }
-
-  .message-avatar {
-    width: 40px;
-    height: 40px;
-    margin: 0 10px;
-  }
-
-  .message-input-container {
-    padding: 15px;
-    gap: 10px;
-  }
-
-  .message-input {
-    padding: 12px 16px;
-    min-height: 45px;
-  }
-
-  .send-button {
-    padding: 12px 20px;
-    min-width: 70px;
-  }
-}
-
-@media (max-width: 480px) {
-  .user-panel {
-    padding: 20px 15px;
-  }
-
-  .avatar-preview {
-    width: 80px;
-    height: 80px;
-    font-size: 32px;
-  }
-
-  .messages-container {
-    padding: 15px;
-  }
-
-  .message {
-    max-width: 95%;
-    margin-bottom: 15px;
+    max-width: 85%;
   }
 
   .message-content {
@@ -565,18 +482,69 @@ body, html {
   }
 
   .message-avatar {
-    width: 35px;
-    height: 35px;
+    width: 36px;
+    height: 36px;
     margin: 0 8px;
+  }
+
+  .message-input-container {
+    padding: 12px 15px;
+    gap: 10px;
+  }
+
+  .message-input {
+    padding: 10px 14px;
+    min-height: 40px;
+  }
+
+  .send-button {
+    padding: 10px 16px;
+    min-width: 60px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-panel {
+    padding: 15px 12px;
+  }
+
+  .avatar-preview {
+    width: 70px;
+    height: 70px;
+    font-size: 28px;
+  }
+
+  .messages-container {
+    padding: 15px;
+  }
+
+  .message {
+    max-width: 90%;
+    margin-bottom: 12px;
+  }
+
+  .message-content {
+    padding: 8px 12px;
+  }
+
+  .message-avatar {
+    width: 32px;
+    height: 32px;
+    margin: 0 6px;
+  }
+  
+  .message-input-container {
+    padding: 10px 12px;
   }
 }
 
 /* 加载动画 */
 .loading {
   display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   border-top-color: #fff;
   animation: spin 1s ease-in-out infinite;
@@ -593,9 +561,9 @@ body, html {
   right: 20px;
   background: #4CAF50;
   color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 10px 16px;
+  border-radius: 6px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
   z-index: 10000;
   animation: slideInRight 0.3s ease, slideOutRight 0.3s ease 2.7s forwards;
 }
@@ -620,4 +588,27 @@ body, html {
     transform: translateX(100%);
     opacity: 0;
   }
+}
+
+/* 空状态样式 */
+.empty-state {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
 }
