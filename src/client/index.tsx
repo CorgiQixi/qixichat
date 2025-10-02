@@ -101,71 +101,16 @@ function Avatar({ userInfo, onUpdate }: {
   userInfo: UserInfo; 
   onUpdate: (info: Partial<UserInfo>) => void;
 }) {
-  const avatarEmojis = ["👤", "😊", "😎", "🤩", "🥰", "😇"];
-  const [imageError, setImageError] = useState(false);
-  const [avatarInput, setAvatarInput] = useState('');
-
-  // 初始化输入框值
-  useEffect(() => {
-    if (userInfo.avatarType === 'image') {
-      setAvatarInput(userInfo.userAvatar);
-    }
-  }, []);
-
-  const handleAvatarUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const url = e.target.value.trim();
-    setAvatarInput(url);
-    
-    if (url) {
-      try {
-        new URL(url);
-        setImageError(false);
-        onUpdate({ userAvatar: url, avatarType: 'image' });
-      } catch {
-        // 无效URL，不更新
-      }
-    } else {
-      setAvatarInput('');
-      onUpdate({ userAvatar: '👤', avatarType: 'emoji' });
-    }
-  };
+  const avatarEmojis = ["👤", "😊", "😎", "🤩", "🥰", "😇", "🌟", "💫", "🎭", "🎨", "🦄", "🐼"];
 
   const handleEmojiClick = (emoji: string) => {
-    setAvatarInput('');
-    setImageError(false);
     onUpdate({ userAvatar: emoji, avatarType: 'emoji' });
-  };
-
-  const handleImageError = () => {
-    setImageError(true);
-    setAvatarInput('');
-    onUpdate({ userAvatar: '👤', avatarType: 'emoji' });
   };
 
   return (
     <div className="avatar-section">
       <div className="avatar-preview">
-        {userInfo.avatarType === 'image' && !imageError ? (
-          <img 
-            src={userInfo.userAvatar} 
-            alt="头像"
-            onError={handleImageError}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          <span style={{ fontSize: '36px' }}>{userInfo.userAvatar}</span>
-        )}
-      </div>
-      <div className="input-group">
-        <label htmlFor="avatarUrl">头像图片 URL</label>
-        <input 
-          type="text" 
-          id="avatarUrl" 
-          placeholder="输入图片URL地址" 
-          className="u-full-width"
-          value={avatarInput}
-          onChange={handleAvatarUrlChange}
-        />
+        <span className="avatar-emoji">{userInfo.userAvatar}</span>
       </div>
       <div className="avatar-options">
         {avatarEmojis.map(emoji => (
@@ -229,7 +174,7 @@ function UserPanel({
       )}
       
       <div className="user-info">
-        <h4 className="app-title">七夕聊天</h4>
+        <h4 className="app-title">Qixi Chat</h4>
         
         <Avatar userInfo={userInfo} onUpdate={onUpdateUserInfo} />
 
