@@ -1,559 +1,800 @@
-import { createRoot } from "react-dom/client";
-import { usePartySocket } from "partysocket/react";
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate,
-  useParams,
-} from "react-router";
-import { nanoid } from "nanoid";
-
-import { names, type ChatMessage, type Message } from "../shared";
-
-// 用户信息接口
-interface UserInfo {
-  userId: string;
-  userName: string;
-  userAvatar: string;
-  avatarType: 'emoji' | 'image';
+/* 全局样式 */
+* {
+  box-sizing: border-box;
 }
 
-// 防抖函数
-function debounce<T extends (...args: any[]) => void>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
+body, html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: #f5f5f5;
+  overflow: hidden;
 }
 
-// 获取或创建用户信息
-function getUserInfo(): UserInfo {
-  const savedUserInfo = localStorage.getItem('qixiUserInfo');
-  if (savedUserInfo) {
-    return JSON.parse(savedUserInfo);
+.app-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 左侧用户面板 */
+.user-panel {
+  width: 320px;
+  background: linear-gradient(135deg, #b3cc9c 0%, #9bb583 100%);
+  padding: 25px 20px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  z-index: 10;
+  overflow-y: auto;
+}
+
+.app-title {
+  color: #2d5016;
+  text-align: center;
+  margin-bottom: 25px;
+  font-weight: 700;
+  font-size: 22px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.avatar-section {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.avatar-preview {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  margin: 0 auto 15px;
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avatar-options {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.avatar-option {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.avatar-option:hover {
+  background: white;
+  transform: scale(1.1);
+}
+
+.avatar-option.active {
+  border-color: #7aa35c;
+  background: white;
+  box-shadow: 0 2px 8px rgba(122, 163, 92, 0.3);
+}
+
+.input-group, .info-group {
+  margin-bottom: 18px;
+}
+
+.input-group label, .info-group label {
+  display: block;
+  margin-bottom: 6px;
+  color: #2d5016;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #7aa35c;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(122, 163, 92, 0.2);
+}
+
+.info-group .info-value {
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  color: #666;
+  font-size: 14px;
+  word-break: break-all;
+  font-family: 'Courier New', monospace;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+}
+
+.info-value-with-copy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  color: #666;
+  font-size: 14px;
+  word-break: break-all;
+  font-family: 'Courier New', monospace;
+  min-height: 42px;
+}
+
+.info-value-with-copy span {
+  flex: 1;
+  word-break: break-all;
+}
+
+.copy-btn {
+  background: none;
+  border: none;
+  color: #7aa35c;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.copy-btn:hover {
+  background: rgba(122, 163, 92, 0.1);
+  color: #5a8042;
+}
+
+.share-section {
+  margin-top: 20px;
+}
+
+.share-btn {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  color: #7aa35c;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.share-btn:hover {
+  background: white;
+  border-color: #7aa35c;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 右侧聊天面板 */
+.chat-panel {
+  flex: 1;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 消息显示区域 */
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  background: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 固定的消息输入区域 */
+.message-input-fixed {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e8e8e8;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  z-index: 100;
+}
+
+.message-input-container {
+  display: flex;
+  gap: 12px;
+  padding: 15px 20px;
+  background: white;
+}
+
+.message-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #e8e8e8;
+  border-radius: 20px;
+  outline: none;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  resize: none;
+  min-height: 44px;
+  max-height: 100px;
+  font-family: inherit;
+  line-height: 1.4;
+}
+
+.message-input:focus {
+  border-color: #b3cc9c;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(179, 204, 156, 0.2);
+}
+
+.send-button {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #b3cc9c, #9bb583);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  min-width: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(155, 181, 131, 0.3);
+  flex-shrink: 0;
+}
+
+.send-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(155, 181, 131, 0.4);
+}
+
+.send-button:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* 消息样式 */
+.message {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  max-width: 80%;
+  animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message.own {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+  margin-left: auto;
+}
+
+.message.other {
+  align-self: flex-start;
+}
+
+.message-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  margin: 0 10px;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.message-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.message.own .message-avatar {
+  background: linear-gradient(135deg, #a4f678, #8de55c);
+}
+
+.message.other .message-avatar {
+  background: linear-gradient(135deg, #e3e3e3, #d0d0d0);
+}
+
+.message-content {
+  padding: 12px 16px;
+  border-radius: 18px;
+  position: relative;
+  word-wrap: break-word;
+  max-width: 100%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.message.own .message-content {
+  background: linear-gradient(135deg, #a4f678, #8de55c);
+  border-bottom-right-radius: 4px;
+  color: #2d5016;
+}
+
+.message.other .message-content {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-bottom-left-radius: 4px;
+  color: #333;
+}
+
+.message-user {
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: #666;
+}
+
+.message.own .message-user {
+  color: rgba(45, 80, 22, 0.8);
+}
+
+.message-text {
+  margin: 0;
+  line-height: 1.4;
+  font-size: 14px;
+}
+
+.message-time {
+  font-size: 10px;
+  color: #999;
+  margin-top: 4px;
+  text-align: right;
+}
+
+.message.other .message-time {
+  text-align: left;
+}
+
+/* 移动端底部导航 */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e8e8e8;
+  padding: 8px;
+  z-index: 1000;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nav-btn {
+  flex: 1;
+  padding: 10px;
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border-radius: 8px;
+}
+
+.nav-btn.active {
+  color: #7aa35c;
+  background: rgba(122, 163, 92, 0.1);
+}
+
+/* 滚动条样式 */
+.messages-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+
+  .user-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    transform: translateX(-100%);
+    z-index: 100;
+    padding: 20px 15px;
+  }
+
+  .user-panel.active {
+    transform: translateX(0);
+  }
+
+  .chat-panel {
+    width: 100%;
+  }
+
+  .mobile-nav {
+    display: flex;
+  }
+
+  .message {
+    max-width: 85%;
+  }
+
+  .message-content {
+    padding: 10px 14px;
+  }
+
+  .message-avatar {
+    width: 36px;
+    height: 36px;
+    margin: 0 8px;
+  }
+
+  .message-input-container {
+    padding: 12px 15px;
+    gap: 10px;
+  }
+
+  .message-input {
+    padding: 10px 14px;
+    min-height: 40px;
+  }
+
+  .send-button {
+    padding: 10px 16px;
+    min-width: 60px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-panel {
+    padding: 15px 12px;
+  }
+
+  .avatar-preview {
+    width: 70px;
+    height: 70px;
+    font-size: 28px;
+  }
+
+  .messages-container {
+    padding: 15px;
+  }
+
+  .message {
+    max-width: 90%;
+    margin-bottom: 12px;
+  }
+
+  .message-content {
+    padding: 8px 12px;
+  }
+
+  .message-avatar {
+    width: 32px;
+    height: 32px;
+    margin: 0 6px;
   }
   
-  // 创建新用户
-  const newUserInfo: UserInfo = {
-    userId: nanoid(8),
-    userName: names[Math.floor(Math.random() * names.length)],
-    userAvatar: "👤",
-    avatarType: 'emoji'
-  };
-  localStorage.setItem('qixiUserInfo', JSON.stringify(newUserInfo));
-  return newUserInfo;
+  .message-input-container {
+    padding: 10px 12px;
+  }
 }
 
-// 通知组件
-function Notification({ message }: { message: string }) {
-  return (
-    <div className="notification">
-      {message}
-    </div>
-  );
+/* 加载动画 */
+.loading {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
 }
 
-// 头像组件
-function Avatar({ userInfo, onUpdate }: { 
-  userInfo: UserInfo; 
-  onUpdate: (info: Partial<UserInfo>) => void;
-}) {
-  const avatarEmojis = ["👤", "😊", "😎", "🤩", "🥰", "😇"];
-  const [imageError, setImageError] = useState(false);
-
-  const handleAvatarUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const url = e.target.value.trim();
-    if (url) {
-      try {
-        new URL(url);
-        setImageError(false);
-        onUpdate({ userAvatar: url, avatarType: 'image' });
-      } catch {
-        // 无效URL
-      }
-    } else {
-      onUpdate({ userAvatar: '👤', avatarType: 'emoji' });
-    }
-  };
-
-  const handleEmojiClick = (emoji: string) => {
-    onUpdate({ userAvatar: emoji, avatarType: 'emoji' });
-  };
-
-  const handleImageError = () => {
-    setImageError(true);
-    onUpdate({ userAvatar: '👤', avatarType: 'emoji' });
-  };
-
-  return (
-    <div className="avatar-section">
-      <div className="avatar-preview">
-        {userInfo.avatarType === 'image' && !imageError ? (
-          <img 
-            src={userInfo.userAvatar} 
-            alt="头像"
-            onError={handleImageError}
-            style={{ display: 'block' }}
-          />
-        ) : (
-          <span style={{ display: 'block' }}>{userInfo.userAvatar}</span>
-        )}
-      </div>
-      <div className="input-group">
-        <label htmlFor="avatarUrl">头像图片 URL</label>
-        <input 
-          type="text" 
-          id="avatarUrl" 
-          placeholder="输入图片URL地址" 
-          className="u-full-width"
-          value={userInfo.avatarType === 'image' ? userInfo.userAvatar : ''}
-          onChange={handleAvatarUrlChange}
-        />
-      </div>
-      <div className="avatar-options">
-        {avatarEmojis.map(emoji => (
-          <span 
-            key={emoji}
-            className={`avatar-option ${userInfo.avatarType === 'emoji' && userInfo.userAvatar === emoji ? 'active' : ''}`}
-            onClick={() => handleEmojiClick(emoji)}
-          >
-            {emoji}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-// 用户面板组件
-function UserPanel({ 
-  userInfo, 
-  roomId, 
-  onUpdateUserInfo 
-}: { 
-  userInfo: UserInfo; 
-  roomId: string;
-  onUpdateUserInfo: (info: Partial<UserInfo>) => void;
-}) {
-  const [notification, setNotification] = useState<string | null>(null);
-
-  const showNotification = (message: string) => {
-    setNotification(message);
-    setTimeout(() => setNotification(null), 3000);
-  };
-
-  const handleCopyRoomId = () => {
-    navigator.clipboard.writeText(roomId).then(() => {
-      showNotification('聊天室ID已复制到剪贴板');
-    }).catch(() => {
-      const textArea = document.createElement('textarea');
-      textArea.value = roomId;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      showNotification('聊天室ID已复制到剪贴板');
-    });
-  };
-
-  const handleShareRoom = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: '加入我的聊天室',
-        text: '快来加入我的七夕聊天室！',
-        url: window.location.href
-      });
-    } else {
-      navigator.clipboard.writeText(window.location.href).then(() => {
-        showNotification('聊天室链接已复制到剪贴板');
-      }).catch(() => {
-        const textArea = document.createElement('textarea');
-        textArea.value = window.location.href;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        showNotification('聊天室链接已复制到剪贴板');
-      });
-    }
-  };
-
-  return (
-    <div className="user-panel" id="userPanel">
-      {notification && <Notification message={notification} />}
-      
-      <div className="user-info">
-        <h4 className="app-title">七夕聊天</h4>
-        
-        <Avatar userInfo={userInfo} onUpdate={onUpdateUserInfo} />
-
-        <div className="input-group">
-          <label htmlFor="userName">昵称</label>
-          <input 
-            type="text" 
-            id="userName" 
-            placeholder="请输入昵称" 
-            className="u-full-width"
-            value={userInfo.userName}
-            onChange={(e) => onUpdateUserInfo({ userName: e.target.value.trim() || userInfo.userName })}
-          />
-        </div>
-
-        <div className="info-group">
-          <label>用户 ID</label>
-          <div className="info-value">{userInfo.userId}</div>
-        </div>
-
-        <div className="info-group">
-          <label>聊天室 ID</label>
-          <div className="info-value-with-copy">
-            <span>{roomId}</span>
-            <button className="copy-btn" onClick={handleCopyRoomId} title="复制聊天室ID">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2"/>
-                <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" stroke="currentColor" strokeWidth="2"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div className="share-section">
-          <button className="share-btn" onClick={handleShareRoom}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 6.65685 16.3431 8 18 8Z" stroke="currentColor" strokeWidth="2"/>
-              <path d="M18 22C19.6569 22 21 20.6569 21 19C21 17.3431 19.6569 16 18 16C16.3431 16 15 17.3431 15 19C15 20.6569 16.3431 22 18 22Z" stroke="currentColor" strokeWidth="2"/>
-              <path d="M6 15C7.65685 15 9 13.6569 9 12C9 10.3431 7.65685 9 6 9C4.34315 9 3 10.3431 3 12C3 13.6569 4.34315 15 6 15Z" stroke="currentColor" strokeWidth="2"/>
-              <path d="M15 5L9 12M9 12L15 19" stroke="currentColor" strokeWidth="2"/>
-            </svg>
-            分享聊天室
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+/* 通知样式 */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #4CAF50;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 6px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  animation: slideInRight 0.3s ease, slideOutRight 0.3s ease 2.7s forwards;
 }
 
-// 消息组件
-function MessageItem({ 
-  message, 
-  isOwn, 
-  userInfo 
-}: { 
-  message: ChatMessage & { timestamp: number }; 
-  isOwn: boolean;
-  userInfo: UserInfo;
-}) {
-  const formatTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  return (
-    <div className={`message ${isOwn ? 'own' : 'other'}`}>
-      <div className="message-avatar">
-        {isOwn ? (
-          userInfo.avatarType === 'image' ? (
-            <img 
-              src={userInfo.userAvatar} 
-              alt="头像"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const span = document.createElement('span');
-                span.textContent = '👤';
-                target.parentElement?.appendChild(span);
-              }}
-            />
-          ) : (
-            <span>{userInfo.userAvatar}</span>
-          )
-        ) : (
-          <span>👤</span>
-        )}
-      </div>
-      <div className="message-content">
-        <div className="message-user">{message.user}</div>
-        <div className="message-text">{message.content}</div>
-        <div className="message-time">{formatTime(message.timestamp)}</div>
-      </div>
-    </div>
-  );
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
-// 聊天面板组件
-function ChatPanel({ 
-  userInfo, 
-  messages, 
-  isConnected, 
-  onSendMessage 
-}: { 
-  userInfo: UserInfo;
-  messages: (ChatMessage & { timestamp: number })[];
-  isConnected: boolean;
-  onSendMessage: (content: string) => void;
-}) {
-  const [messageInput, setMessageInput] = useState('');
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  const adjustTextareaHeight = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 100) + 'px';
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (messageInput.trim() && isConnected) {
-      onSendMessage(messageInput.trim());
-      setMessageInput('');
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-      }
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e);
-    }
-  };
-
-  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setMessageInput(e.target.value);
-    adjustTextareaHeight();
-  };
-
-  return (
-    <div className="chat-panel">
-      <div className="chat-container">
-        <div className="messages-container" ref={messagesContainerRef}>
-          {messages.length === 0 ? (
-            <div className="empty-state">
-              <h3>欢迎来到七夕聊天室！</h3>
-              <p>{isConnected ? '开始发送第一条消息吧～' : '连接中...'}</p>
-            </div>
-          ) : (
-            messages.map((message) => (
-              <MessageItem
-                key={message.id}
-                message={message}
-                isOwn={message.user === userInfo.userName}
-                userInfo={userInfo}
-              />
-            ))
-          )}
-        </div>
-        
-        <div className="message-input-fixed">
-          <form className="message-input-container" onSubmit={handleSubmit}>
-            <textarea 
-              ref={textareaRef}
-              value={messageInput}
-              onChange={handleInput}
-              onKeyPress={handleKeyPress}
-              placeholder="输入消息... (按Enter发送，Shift+Enter换行)" 
-              className="message-input"
-              rows={1}
-            />
-            <button 
-              type="submit" 
-              className="send-button"
-              disabled={!isConnected || !messageInput.trim()}
-            >
-              发送
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
 }
 
-// 移动端导航组件
-function MobileNav() {
-  const [activePanel, setActivePanel] = useState<'chat' | 'user'>('chat');
-
-  const handleNavClick = (panel: 'chat' | 'user') => {
-    setActivePanel(panel);
-    const userPanel = document.getElementById('userPanel');
-    if (userPanel) {
-      if (panel === 'user') {
-        userPanel.classList.add('active');
-      } else {
-        userPanel.classList.remove('active');
-      }
-    }
-  };
-
-  return (
-    <div className="mobile-nav">
-      <button 
-        className={`nav-btn ${activePanel === 'chat' ? 'active' : ''}`}
-        onClick={() => handleNavClick('chat')}
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z"/>
-        </svg>
-        聊天
-      </button>
-      <button 
-        className={`nav-btn ${activePanel === 'user' ? 'active' : ''}`}
-        onClick={() => handleNavClick('user')}
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z"/>
-        </svg>
-        我的
-      </button>
-    </div>
-  );
+/* 空状态样式 */
+.empty-state {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-function App() {
-  const { room } = useParams();
-  const [userInfo, setUserInfo] = useState<UserInfo>(getUserInfo());
-  const [messages, setMessages] = useState<(ChatMessage & { timestamp: number })[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
-
-  // 实时保存用户信息
-  const saveUserInfo = useCallback(
-    debounce((info: UserInfo) => {
-      localStorage.setItem('qixiUserInfo', JSON.stringify(info));
-    }, 500),
-    []
-  );
-
-  useEffect(() => {
-    saveUserInfo(userInfo);
-  }, [userInfo, saveUserInfo]);
-
-  const updateUserInfo = (updates: Partial<UserInfo>) => {
-    setUserInfo(prev => ({ ...prev, ...updates }));
-  };
-
-  const socket = usePartySocket({
-    party: "chat",
-    room: room || 'default',
-    onOpen: () => {
-      setIsConnected(true);
-    },
-    onClose: () => {
-      setIsConnected(false);
-    },
-    onError: () => {
-      setIsConnected(false);
-    },
-    onMessage: (evt) => {
-      try {
-        const message = JSON.parse(evt.data as string) as Message;
-        if (message.type === "add") {
-          setMessages((prevMessages) => {
-            const foundIndex = prevMessages.findIndex((m) => m.id === message.id);
-            const newMessage: ChatMessage & { timestamp: number } = {
-              id: message.id,
-              content: message.content,
-              user: message.user,
-              role: message.role,
-              timestamp: message.timestamp || Date.now()
-            };
-            
-            if (foundIndex === -1) {
-              return [...prevMessages, newMessage];
-            } else {
-              return [
-                ...prevMessages.slice(0, foundIndex),
-                newMessage,
-                ...prevMessages.slice(foundIndex + 1)
-              ];
-            }
-          });
-        } else if (message.type === "update") {
-          setMessages((prevMessages) =>
-            prevMessages.map((m) =>
-              m.id === message.id
-                ? {
-                    id: message.id,
-                    content: message.content,
-                    user: message.user,
-                    role: message.role,
-                    timestamp: message.timestamp || Date.now()
-                  }
-                : m
-            )
-          );
-        } else if (message.type === "all") {
-          setMessages(
-            message.messages.map(msg => ({
-              ...msg,
-              timestamp: msg.timestamp || Date.now()
-            }))
-          );
-        }
-      } catch (error) {
-        console.error('解析消息错误:', error);
-      }
-    },
-  });
-
-  const handleSendMessage = (content: string) => {
-    const chatMessage: ChatMessage & { timestamp: number } = {
-      id: nanoid(8),
-      content,
-      user: userInfo.userName,
-      role: "user",
-      timestamp: Date.now()
-    };
-
-    setMessages((prevMessages) => [...prevMessages, chatMessage]);
-    socket.send(
-      JSON.stringify({
-        type: "add",
-        ...chatMessage,
-      } satisfies Message)
-    );
-  };
-
-  return (
-    <div className="app-container">
-      <UserPanel 
-        userInfo={userInfo}
-        roomId={room || 'default'}
-        onUpdateUserInfo={updateUserInfo}
-      />
-      <ChatPanel
-        userInfo={userInfo}
-        messages={messages}
-        isConnected={isConnected}
-        onSendMessage={handleSendMessage}
-      />
-      <MobileNav />
-    </div>
-  );
+.empty-state h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  font-weight: 600;
 }
 
-createRoot(document.getElementById("root")!).render(
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<Navigate to={`/${nanoid()}`} />} />
-      <Route path="/:room" element={<App />} />
-      <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
-  </BrowserRouter>
-);
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* 连接状态指示器 */
+.connection-status {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+  z-index: 1000;
+}
+
+.connection-status.connected {
+  background: #4CAF50;
+  color: white;
+}
+
+.connection-status.disconnected {
+  background: #f44336;
+  color: white;
+}
+
+.connection-status.connecting {
+  background: #ff9800;
+  color: white;
+}
+
+/* 分享弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.modal-body {
+  flex: 1;
+  padding: 24px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.share-iframe {
+  width: 100%;
+  flex: 1;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  min-height: 400px;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .modal-header {
+    padding: 16px 20px;
+  }
+
+  .modal-body {
+    padding: 20px;
+  }
+
+  .share-iframe {
+    min-height: 350px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    width: 100%;
+    height: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .share-iframe {
+    min-height: 300px;
+  }
+}
